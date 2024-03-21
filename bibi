@@ -1,0 +1,581 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
+#include <stdbool.h>
+#include <string.h>
+#include <conio.h>
+
+#define MAX_SIZE 100
+
+int N = 0;
+
+struct pib {
+	char name[20];
+	char surname[20];
+	char patronymic[20];
+};
+
+struct anthropological {
+	char Gender;
+	short age;
+	short height;
+	short weight;
+};
+
+struct fansGuide {
+	pib pname;
+	anthropological antr;
+	char citizenship[25];
+	char origin[25];
+	char tsport[25];
+	char teamname[25];
+	char record[300];
+	int price;
+} *fans;
+
+void Color(int c);
+short menu();
+void DisplayDatabase();
+void Search();
+void Edit(struct fansGuide* fans, int N);
+short InPut();
+void Delete();
+void ExitProgram();
+void SaveToFile();
+void ReadFromFile();
+void DisplayPlayerInfo(int playerIndex);
+
+
+
+int main() {
+	system("chcp 1251");
+	system("cls");
+	SetConsoleTitle(L"довідник фаната");
+	Color(2);
+
+	fans = (struct fansGuide*)malloc(MAX_SIZE * sizeof(struct fansGuide)); // Отримання пам'яті для структур
+	if (fans == NULL) {
+		printf("Неможливо виділити пам'ять для бази даних.\n");
+		return 1; // Повертаємо код помилки
+	}
+
+	ReadFromFile();
+
+	short choice;
+	do {
+		choice = menu(); // Збереження значення, яке повертається функцією menu()
+		switch (choice) {
+		case 1:
+			DisplayDatabase(); // Виклик функції для відображення бази даних
+			break;
+		case 2:
+			Search(); // Виклик функції пошуку
+			break;
+		case 3:
+			Edit(fans, N); // Виклик функції редагування без оголошення типу
+			break;
+		case 4:
+			InPut(); // Виклик функції додавання спортсмена
+			break;
+		case 5:
+			Delete(); // Виклик функції видалення спортсмена
+			break;
+		case 6:
+			ExitProgram(); // Виклик функції виходу з програми
+			break;
+		default:
+			printf("Некоректний вибір.\n");
+		}
+	} while (choice != 6);
+
+	free(fans); // Звільнення виділеної пам'яті
+
+	return 0;
+}
+
+void ExitProgram() {
+	system("cls");
+	printf("Програма завершила свою роботу.\n");
+	exit(0); // Вихід з програми з кодом 0 (успішне завершення)
+}
+
+void Color(int c) {
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), c);
+}
+
+short menu() {
+	short punktMenu = 1;
+	int key = 0;
+
+	while (true) {
+		system("cls");
+		printf("      <<MENU>> \n");
+		if (punktMenu == 1)
+			Color(16);
+		printf(" База спортсменів \n");
+		Color(2);
+		if (punktMenu == 2)
+			Color(16);
+		printf(" Пошук спортсмена \n");
+		Color(2);
+		if (punktMenu == 3)
+			Color(16);
+		printf(" Редагування данних \n");
+		Color(2);
+		if (punktMenu == 4)
+			Color(16);
+		printf(" Додати спортсмена \n");
+		Color(2);
+		if (punktMenu == 5)
+			Color(16);
+		printf(" Видалити спортсмена \n");
+		Color(2);
+		if (punktMenu == 6)
+			Color(16);
+		printf(" Вихід ");
+		Color(2);
+
+		// Отримання коду клавіші
+		key = _getch();
+
+		if (key == 13) // Enter
+			break;
+		else if (key == 224) { // Спеціальний код
+			key = _getch(); // Отримання додаткової інформації
+			if (key == 72 && punktMenu != 1) // Up arrow
+				punktMenu--;
+			else if (key == 80 && punktMenu != 6) // Down arrow
+				punktMenu++;
+		}
+	}
+	return punktMenu;
+}
+
+short InPut() {
+	short punktInPut = 1;
+	int key = 0;
+
+	while (true) {
+		system("cls");
+		printf("Виберіть дію: \n");
+		if (punktInPut == 1)
+			Color(16);
+		printf("1)додати спортсмена \n");
+		Color(2);
+		if (punktInPut == 2)
+			Color(16);
+		printf("2)вийти до меню \n");
+		Color(2);
+
+		// Отримання коду клавіші
+		key = _getch();
+
+		if (key == 13) {// Enter
+			if (punktInPut == 1) { // Обробка опції "додати спортсмена"
+				system("cls");
+				printf("введіть данні гравця:\n");
+				printf("Прізвище: ");
+				scanf("%19s", fans[N].pname.surname);
+				printf("Ім'я: ");
+				scanf("%19s", fans[N].pname.name);
+				printf("По батькові: ");
+				scanf("%19s", fans[N].pname.patronymic);
+				printf("Стать(Ч/Ж): ");
+				scanf(" %c", &fans[N].antr.Gender);
+				printf("Вік: ");
+				scanf("%hd", &fans[N].antr.age);
+				printf("Зрість: ");
+				scanf("%hd", &fans[N].antr.height);
+				printf("Вага: ");
+				scanf("%hd", &fans[N].antr.weight);
+				while (getchar() != '\n'); // Очищення буфера введення
+				printf("Громадянство: ");
+				fgets(fans[N].citizenship, sizeof(fans[N].citizenship), stdin);
+				printf("Походження: ");
+				fgets(fans[N].origin, sizeof(fans[N].origin), stdin);
+				printf("Вид спорту: ");
+				fgets(fans[N].tsport, sizeof(fans[N].tsport), stdin);
+				printf("Команда: ");
+				fgets(fans[N].teamname, sizeof(fans[N].teamname), stdin);
+				printf("Рекорди: ");
+				fgets(fans[N].record, sizeof(fans[N].record), stdin);
+				printf("Ціна: ");
+				scanf("%d", &fans[N].price);
+				++N;
+				void SaveToFile();
+				// Зчитування інших характеристик гравця...
+				printf("\nГравець успішно доданий у базу спортсменів.\n");
+				fflush(stdout); // Очищення буфера виведення
+				_getch(); // Затримка, щоб користувач міг побачити повідомлення
+			}
+			else if (punktInPut == 2) { // Обробка опції "вийти до меню"
+				return 2; // Повернення значення для виходу до меню
+			}
+		}
+		else if (key == 224) { // Спеціальний код
+			key = _getch(); // Отримання додаткової інформації
+			if (key == 72 && punktInPut != 1) // Up arrow
+				punktInPut--;
+			else if (key == 80 && punktInPut != 2) // Down arrow
+				punktInPut++;
+		}
+	}
+}
+
+void DisplayDatabase() {
+	system("cls");
+	printf("============= База спортсменів =============\n\n");
+	if (N == 0) {
+		printf("             База даних порожня.\n");
+		return;
+	}
+
+	int selected = 0;
+	int key = 0;
+
+	while (1) {
+		system("cls");
+		printf("============= База спортсменів =============\n\n");
+
+		for (int i = 0; i < N; i++) {
+			if (i == selected) {
+				Color(16); // Встановлення білого кольору для виділеного спортсмена
+			}
+			else {
+				Color(2); // Встановлення стандартного кольору для інших спортсменів		
+			}
+			printf("Спортсмен №%d: %s %s %s\n", i + 1, fans[i].pname.surname, fans[i].pname.name, fans[i].pname.patronymic);
+		}
+
+		Color(2); // Встановлення стандартного кольору перед введенням команди користувача
+
+		printf("\nНатисніть стрілки вверх/вниз для переміщення, Enter для перегляду деталей, 'esc' для повернення до головного меню..\n");
+
+		key = _getch();
+
+		if (key == 13) { // Enter
+			DisplayPlayerInfo(selected);
+		}
+		else if (key == 72 && selected > 0) { // Up arrow
+			selected--;
+		}
+		else if (key == 80 && selected < N - 1) { // Down arrow
+			selected++;
+		}
+		else if (key == 77) { // Right arrow
+			selected = N - 1;
+		}
+		else if (key == 75) { // Left arrow
+			selected = 0;
+		}
+		else if (key == 27) { // Esc
+			return; // Повертаємося до головного меню
+		}
+	
+	}
+}
+
+void DisplayPlayerInfo(int playerIndex) {
+	int choice = 0;
+	int key;
+	while (1) {
+		system("cls");
+		printf("============= Характеристики спортсмена №%d =============\n\n", playerIndex + 1);
+		printf(" %-20s | %-20s | %-20s\n", "Характеристика", "Значення", "");
+		printf("---------------------------------------------------------\n");
+		printf(" %-20s | %-20s | %-20s\n", "Прізвище", fans[playerIndex].pname.surname, "");
+		printf(" %-20s | %-20s | %-20s\n", "Ім'я", fans[playerIndex].pname.name, "");
+		printf(" %-20s | %-20s | %-20s\n", "По батькові", fans[playerIndex].pname.patronymic, "");
+		printf(" %-20s | %-20c | %-20s\n", "Стать", fans[playerIndex].antr.Gender, "");
+		printf(" %-20s | %-20d | %-20s\n", "Вік", fans[playerIndex].antr.age, "");
+		printf(" %-20s | %-20d | %-20s\n", "Зріст", fans[playerIndex].antr.height, "");
+		printf(" %-20s | %-20d | %-20s\n", "Вага", fans[playerIndex].antr.weight, "");
+		printf(" %-20s | %-20s | %-20s\n", "Громадянство", fans[playerIndex].citizenship, "");
+		printf(" %-20s | %-20s | %-20s\n", "Походження", fans[playerIndex].origin, "");
+		printf(" %-20s | %-20s | %-20s\n", "Вид спорту", fans[playerIndex].tsport, "");
+		printf(" %-20s | %-20s | %-20s\n", "Команда", fans[playerIndex].teamname, "");
+		printf(" %-20s | %-20s | %-20s\n", "Рекорди", fans[playerIndex].record, "");
+		printf(" %-20s | %-20d | %-20s\n", "Ціна", fans[playerIndex].price, "");
+		// Виведення характеристик спортсмена
+		printf("\nВиберіть дію:\n");
+		if (choice == 0) {
+			Color(16); // Підсвічуємо обраний варіант
+			printf("\r   Повернутися до головного меню\n");
+			Color(2); // Повертаємо стандартний колір тексту
+		}
+		else {
+			printf("\r   Повернутися до головного меню\n");
+		}
+		if (choice == 1) {
+			Color(16); // Підсвічуємо обраний варіант
+			printf("\r   Повернутися до бази спортсменів\n");
+			Color(2); // Повертаємо стандартний колір тексту
+		}
+		else {
+			printf("\r   Повернутися до бази спортсменів\n");
+		}
+
+		key = _getch();
+
+		if (key == 72 && choice != 0) { // Up arrow and not at the top option
+			choice--; // Move up
+		}
+		else if (key == 80 && choice != 1) { // Down arrow and not at the bottom option
+			choice++; // Move down
+		}
+		else if (key == 13) { // Enter
+			if (choice == 0) {
+				// Повернутися до головного меню
+				menu(); // Викликаємо головне меню
+				break;
+			}
+			else {
+				// Повернутися до бази спортсменів
+				DisplayDatabase(); // Викликаємо функцію відображення бази спортсменів
+				break;
+			}
+		}
+	}
+}
+
+void SaveToFile() {
+	FILE* fp;
+	const char* filename = "C:/Romania/fansGuide.txt"; // Шлях до файлу
+
+	// Відкриття файлу для запису
+	if ((fp = fopen(filename, "w")) == NULL) {
+		printf("Помилка відкриття файлу для запису.\n");
+		return;
+	}
+	for (int i = 0; i < N; i++) {
+		fprintf(fp, "Спортсмен №%d:\n", i + 1);
+		fprintf(fp, "Призвіще: %s\n", fans[i].pname.surname);
+		fprintf(fp, "Ім'я: %s\n", fans[i].pname.name);
+		fprintf(fp, "По батькові: %s\n", fans[i].pname.patronymic);
+		fprintf(fp, "Стать: %c\n", fans[i].antr.Gender);
+		fprintf(fp, "Вік: %d\n", fans[i].antr.age);
+		fprintf(fp, "Зрість: %d\n", fans[i].antr.height);
+		fprintf(fp, "Вага: %d\n", fans[i].antr.weight);
+		fprintf(fp, "Громадянство: %s\n", fans[i].citizenship);
+		fprintf(fp, "Походження: %s\n", fans[i].origin);
+		fprintf(fp, "Вид спорту: %s\n", fans[i].tsport);
+		fprintf(fp, "Команда: %s\n", fans[i].teamname);
+		fprintf(fp, "Рекорди: %s\n", fans[i].record);
+		fprintf(fp, "Ціна: %d\n\n", fans[i].price);
+	}
+	fclose(fp);
+	printf("Дані успішно збережено у файлі.\n");
+}
+
+void Search() {
+	system("cls");
+	char search_surname[20];
+	printf("Введіть прізвище для пошуку: ");
+	scanf("%s", search_surname);
+	bool found = false;
+	for (int i = 0; i < N; i++) {
+		if (strcmp(fans[i].pname.surname, search_surname) == 0) {
+			printf("Знайдено спортсмена:\n");
+			printf("Призвіще: %s\n", fans[i].pname.surname);
+			printf("Ім'я: %s\n", fans[i].pname.name);
+			printf("По батькові: %s\n", fans[i].pname.patronymic);
+			printf("Стать: %c\n", fans[i].antr.Gender);
+			printf("Вік: %d\n", fans[i].antr.age);
+			printf("Зрість: %d\n", fans[i].antr.height);
+			printf("Вага: %d\n", fans[i].antr.weight);
+			printf("Громадянство: %s\n", fans[i].citizenship);
+			printf("Походження: %s\n", fans[i].origin);
+			printf("Вид спорту: %s\n", fans[i].tsport);
+			printf("Команда: %s\n", fans[i].teamname);
+			printf("Рекорди: %s\n", fans[i].record);
+			printf("Ціна: %d\n\n", fans[i].price);
+			found = true;
+		}
+	}
+	if (!found) {
+		printf("Спортсмена з прізвищем %s не знайдено.\n", search_surname);
+	}
+}
+
+void Delete() {
+	system("cls");
+	char del_surname[20];
+	printf("Введіть прізвище для видалення: ");
+	scanf("%s", del_surname);
+	bool deleted = false;
+	for (int i = 0; i < N; i++) {
+		if (strcmp(fans[i].pname.surname, del_surname) == 0) {
+			for (int j = i; j < N - 1; j++) {
+				fans[j] = fans[j + 1];
+			}
+			N--;
+			deleted = true;
+			printf("Спортсмена з прізвищем %s видалено.\n", del_surname);
+			break;
+		}
+	}
+	if (!deleted) {
+		printf("Спортсмена з прізвищем %s не знайдено.\n", del_surname);
+	}
+}
+
+void Edit(struct fansGuide* fans, int N) {
+	char edit_surname[20];
+	bool edited = false;
+	system("cls");
+	printf("Введіть прізвище спортсмена для редагування: ");
+	scanf("%19s", edit_surname);
+	getchar(); // Очистка буфера введення
+
+	for (int i = 0; i < N; i++) {
+		if (strcmp(fans[i].pname.surname, edit_surname) == 0) {
+			system("cls");
+			printf("============= Редагування характеристик спортсмена №%d =============\n\n", i + 1);
+			printf("┌────────────────┬───────────────────┐\n");
+			printf("│   Прізвище    │ %s\n", fans[i].pname.surname);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│      Ім'я      │ %s\n", fans[i].pname.name);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│  По батькові   │ %s\n", fans[i].pname.patronymic);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│  Стать(Ч/Ж)   │ %c\n", fans[i].antr.Gender);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│      Вік       │ %d\n", fans[i].antr.age);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│    Зрість      │ %d\n", fans[i].antr.height);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│     Вага       │ %d\n", fans[i].antr.weight);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│ Громадянство  │ %s\n", fans[i].citizenship);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│  Походження    │ %s\n", fans[i].origin);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│  Вид спорту    │ %s\n", fans[i].tsport);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│    Команда     │ %s\n", fans[i].teamname);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│    Рекорди     │ %s\n", fans[i].record);
+			printf("├────────────────┼───────────────────┤\n");
+			printf("│     Ціна       │ %d\n", fans[i].price);
+			printf("└────────────────┴───────────────────┘\n");
+
+			printf("\nВиберіть номери полів для редагування (введіть номери через пробіл): ");
+			char input[256];
+			fgets(input, sizeof(input), stdin); // Отримання вводу користувача
+			char* token = strtok(input, " "); // Розділення строки на окремі числа
+
+			while (token != NULL) {
+				int choice = atoi(token); // Перетворення строки на ціле число
+				switch (choice) {
+				case 1:
+					printf("Нове ім'я: ");
+					scanf("%19s", fans[i].pname.name);
+					getchar(); // Очистка буфера введення
+					break;
+				case 2:
+					printf("Нове по батькові: ");
+					scanf("%19s", fans[i].pname.patronymic);
+					getchar(); // Очистка буфера введення
+					break;
+				case 3:
+					printf("Нова стать(Ч/Ж): ");
+					scanf(" %c", &fans[i].antr.Gender);
+					getchar(); // Очистка буфера введення
+					break;
+				case 4:
+					printf("Новий вік: ");
+					scanf("%hd", &fans[i].antr.age);
+					getchar(); // Очистка буфера введення
+					break;
+				case 5:
+					printf("Новий зріст: ");
+					scanf("%hd", &fans[i].antr.height);
+					getchar(); // Очистка буфера введення
+					break;
+				case 6:
+					printf("Нова вага: ");
+					scanf("%hd", &fans[i].antr.weight);
+					getchar(); // Очистка буфера введення
+					break;
+				case 7:
+					printf("Нове громадянство: ");
+					fgets(fans[i].citizenship, sizeof(fans[i].citizenship), stdin);
+					break;
+				case 8:
+					printf("Нове походження: ");
+					fgets(fans[i].origin, sizeof(fans[i].origin), stdin);
+					break;
+				case 9:
+					printf("Новий вид спорту: ");
+					fgets(fans[i].tsport, sizeof(fans[i]origin), stdin);
+					break;
+				case 10:
+					printf("Нова команда: ");
+					fgets(fans[i].teamname, sizeof(fans[i].teamname), stdin);
+					break;
+				case 11:
+					printf("Нові рекорди: ");
+					fgets(fans[i].record, sizeof(fans[i].record), stdin);
+					break;
+				case 12:
+					printf("Нова ціна: ");
+					scanf("%d", &fans[i].price);
+					getchar(); // Очистка буфера введення
+					break;
+				default:
+					printf("Некоректний вибір.\n");
+				}
+				token = strtok(NULL, " "); // Отримання наступного числа
+			}
+			edited = true;
+			break; // Вихід з циклу після успішного редагування
+		}
+	}
+	if (edited) {
+		printf("Інформацію про спортсмена %s успішно оновлено.\n", edit_surname);
+	}
+	else {
+		printf("Спортсмена з прізвищем %s не знайдено.\n", edit_surname);
+	}
+}
+
+
+
+void ReadFromFile() {
+	FILE* fp;
+	const char* filename = "C:/Romania/fansGuide.txt"; // Шлях до файлу
+
+	// Відкриття файлу для читання
+	if ((fp = fopen(filename, "r")) == NULL) {
+		printf("Помилка відкриття файлу для читання.\n");
+		return;
+	}
+
+	while (!feof(fp) && N < MAX_SIZE) {
+		fscanf(fp, "Спортсмен №%*d:\n");
+		fscanf(fp, "Призвіще: %[^\n]\n", fans[N].pname.surname);
+		fscanf(fp, "Ім'я: %[^\n]\n", fans[N].pname.name);
+		fscanf(fp, "По батькові: %[^\n]\n", fans[N].pname.patronymic);
+		fscanf(fp, "Стать: %c\n", &fans[N].antr.Gender);
+		fscanf(fp, "Вік: %hd\n", &fans[N].antr.age);
+		fscanf(fp, "Зрість: %hd\n", &fans[N].antr.height);
+		fscanf(fp, "Вага: %hd\n", &fans[N].antr.weight);
+		fscanf(fp, "Громадянство: %[^\n]\n", fans[N].citizenship);
+		fscanf(fp, "Походження: %[^\n]\n", fans[N].origin);
+		fscanf(fp, "Вид спорту: %[^\n]\n", fans[N].tsport);
+		fscanf(fp, "Команда: %[^\n]\n", fans[N].teamname);
+		fscanf(fp, "Рекорди: %[^\n]\n", fans[N].record);
+		fscanf(fp, "Ціна: %d\n", &fans[N].price);
+		N++;
+	}
+	fclose(fp);
+	printf("Дані успішно зчитано з файлу.\n");
+}
+
+
+
+
+
+
+
+
